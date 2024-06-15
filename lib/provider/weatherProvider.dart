@@ -12,7 +12,7 @@ import '../models/hourlyWeather.dart';
 import '../models/weather.dart';
 
 class WeatherProvider with ChangeNotifier {
-  String apiKey = 'Enter Your API Key';
+  String apiKey = '';
   late Weather weather;
   late AdditionalWeatherData additionalWeatherData;
   LatLng? currentLocation;
@@ -97,7 +97,7 @@ class WeatherProvider with ChangeNotifier {
 
   Future<void> getCurrentWeather(LatLng location) async {
     Uri url = Uri.parse(
-      'https://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&units=metric&appid=$apiKey',
+      'https://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&units=metric&lang=zh_cn&appid=$apiKey',
     );
     try {
       final response = await http.get(url);
@@ -116,11 +116,12 @@ class WeatherProvider with ChangeNotifier {
     notifyListeners();
 
     Uri dailyUrl = Uri.parse(
-      'https://api.openweathermap.org/data/2.5/onecall?lat=${location.latitude}&lon=${location.longitude}&units=metric&exclude=minutely,current&appid=$apiKey',
+      'https://api.openweathermap.org/data/3.0/onecall?lat=${location.latitude}&lon=${location.longitude}&units=metric&lang=zh_cn&exclude=minutely,current&appid=$apiKey',
     );
     try {
       final response = await http.get(dailyUrl);
       final dailyData = json.decode(response.body) as Map<String, dynamic>;
+
       additionalWeatherData = AdditionalWeatherData.fromJson(dailyData);
       List dailyList = dailyData['daily'];
       List hourlyList = dailyData['hourly'];
@@ -129,6 +130,7 @@ class WeatherProvider with ChangeNotifier {
           .toList()
           .take(24)
           .toList();
+      print(hourlyWeather);
       dailyWeather =
           dailyList.map((item) => DailyWeather.fromDailyJson(item)).toList();
     } catch (error) {
@@ -141,7 +143,7 @@ class WeatherProvider with ChangeNotifier {
   Future<GeocodeData?> locationToLatLng(String location) async {
     try {
       Uri url = Uri.parse(
-        'http://api.openweathermap.org/geo/1.0/direct?q=$location&limit=5&appid=$apiKey',
+        'http://api.openweathermap.org/geo/1.0/direct?q=$location&limit=5&appid=$apiKey&lang=zh_cn',
       );
       final http.Response response = await http.get(url);
       if (response.statusCode != 200) return null;
